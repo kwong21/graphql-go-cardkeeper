@@ -1,1 +1,1 @@
-![example workflow](https://github.com/kwong21/graphql-go-cardkeeperactions/workflows/main.yml/badge.svg)
+[![Build Status](https://travis-ci.com/kwong21/graphql-go-cardkeeper.svg?branch=develop)](https://travis-ci.com/kwong21/graphql-go-cardkeeper)
