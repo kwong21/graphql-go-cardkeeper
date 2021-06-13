@@ -1,0 +1,11 @@
+# A Team is a single sports team that we are tracking cards for 
+type Team {
+    # Unique identifier
+    id: String
+    # Team name (example: Toronto Blue Jays or Vancouver Cancuks)
+    name: String
+    # Short-name for the team (example: TOR or VAN)
+    abbr: String
+    # Sports league the team belongs to (example: MLB or NHL)
+    league: String
+}
