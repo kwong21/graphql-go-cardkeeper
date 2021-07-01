@@ -11,6 +11,14 @@ type Team struct {
 	League string
 }
 
+type Player struct {
+	gorm.Model
+	FirstName string `gorm:"not null;uniqueIndex:idx_player;default:null"`
+	LastName  string `gorm:"not null;uniqueIndex:idx_player;default:null"`
+	TeamID    uint
+	Team      Team
+}
+
 type Config struct {
 	Database database
 }

@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/graph-gophers/graphql-go/errors"
 	"github.com/kwong21/graphql-go-cardkeeper/service"
 )
 
@@ -33,13 +34,34 @@ func (r QueryResolver) AddTeam(ctx context.Context, args TeamQueryArgs) (*TeamRe
 	t, err := r.DataService.AddTeam(args.Name, args.Abbr, args.League)
 
 	if err != nil {
-		return nil, customError{
-			Code:    "400",
-			Message: fmt.Sprintf("Unable to add new team: %s", err),
+		qe := &errors.QueryError{
+			Message: fmt.Sprintf("error: Unable to add new team: %s", err),
 		}
+		return nil, qe
 	}
 
 	resolved := &TeamResolver{t: &t}
+
+	return resolved, nil
+}
+
+func (r QueryResolver) Player(ctx context.Context, args PlayerQueryArgs) (*PlayerResolver, error) {
+	p := r.DataService.GetPlayerByName(args.FirstName, args.LastName)
+
+	return &PlayerResolver{p: &p}, nil
+}
+
+func (r QueryResolver) AddPlayer(ctx context.Context, args PlayerQueryArgs) (*PlayerResolver, error) {
+	p, err := r.DataService.AddPlayer(args.FirstName, args.LastName, args.TeamName)
+
+	if err != nil {
+		qe := &errors.QueryError{
+			Message: fmt.Sprintf("error: Unable to add new player: %s", err),
+		}
+		return nil, qe
+	}
+
+	resolved := &PlayerResolver{p: &p}
 
 	return resolved, nil
 }

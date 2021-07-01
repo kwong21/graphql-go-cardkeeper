@@ -1,0 +1,11 @@
+# Cards of the player will be tracked.
+type Player {
+    # Unique identifier
+    id: String
+    # Player first nam
+    firstName: String
+    # Player last name
+    lastName: String
+    # Team the player plays for
+    team: Team
+}

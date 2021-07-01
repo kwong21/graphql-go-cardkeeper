@@ -4,5 +4,8 @@ go:
 - 1.16.x
 - master
 
-script:
-  - go test -v ./... -tags unit
+jobs:
+  include:
+    - stage: unit tests
+      script: go test -v ./... -tags unit
+    

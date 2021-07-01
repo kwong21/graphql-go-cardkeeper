@@ -24,5 +24,17 @@ func (s *MockDataService) GetTeamsByLeague(league string) []models.Team {
 func (s *MockDataService) AddTeam(name string, league string, abbr string) (models.Team, error) {
 	args := s.Called(name, league, abbr)
 
-	return args.Get(0).(models.Team), nil
+	return args.Get(0).(models.Team), args.Error(1)
+}
+
+func (s *MockDataService) GetPlayerByName(firstName string, lastName string) models.Player {
+	args := s.Called(firstName, lastName)
+
+	return args.Get(0).(models.Player)
+}
+
+func (s *MockDataService) AddPlayer(firstName string, lastName string, teamName string) (models.Player, error) {
+	args := s.Called(firstName, lastName, teamName)
+
+	return args.Get(0).(models.Player), args.Error(1)
 }

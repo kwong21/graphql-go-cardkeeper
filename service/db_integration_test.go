@@ -1,5 +1,4 @@
 // +build integration
-
 package service_test
 
 import (
@@ -37,5 +36,20 @@ func TestIntegrationDBClient_PG(t *testing.T) {
 		require.NoError(t, err)
 		require.NotNil(t, team)
 		assert.NotEmpty(t, teams)
+	})
+
+	t.Run("integration test - Add Player", func(t *testing.T) {
+		player, err := fixture.AddPlayer("Brock", "Boeser", "test")
+
+		require.NoError(t, err)
+		require.NotNil(t, player)
+		assert.NotEmpty(t, player.ID)
+	})
+
+	t.Run("integration test - error when adding player when team ID does not exist", func(t *testing.T) {
+		player, err := fixture.AddPlayer("Brock", "Boeser", "Some other team")
+
+		assert.Error(t, err)
+		assert.Empty(t, player)
 	})
 }

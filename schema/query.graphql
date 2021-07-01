@@ -1,5 +1,10 @@
 # Queriable data in the API
+
 type Query {
     # Search for a watchlisted Team by name or league, or get all watchlisted teams when no params provided.
     team(league: String!): [Team]
+    # Search a player by name
+    player(firstName: String!, lastName: String!): Player
+    # Search for players by team
+    # playerOnTeam(team: String!): [Player]
 }

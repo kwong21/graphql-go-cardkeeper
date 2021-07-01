@@ -52,7 +52,7 @@ func TestQueryResolver_Graphiql(t *testing.T) {
 	})
 }
 
-func TestQueryResolver_Team(t *testing.T) {
+func TestRootResolver_Team(t *testing.T) {
 	m := new(MockDataService)
 	resolver := &resolver.QueryResolver{
 		DataService: m,
@@ -67,7 +67,7 @@ func TestQueryResolver_Team(t *testing.T) {
 	}
 
 	m.On("GetTeamsByLeague", mock.Anything).Return(mockTeam)
-	m.On("AddTeam", mock.Anything, mock.Anything, mock.Anything).Return(mockTeam)
+	m.On("AddTeam", mock.Anything, mock.Anything, mock.Anything).Return(mockTeam, nil)
 
 	ctx := context.WithValue(context.Background(), "dataServce", m)
 
@@ -117,3 +117,109 @@ func TestQueryResolver_Team(t *testing.T) {
 	})
 	m.AssertExpectations(t)
 }
+
+func TestRootResolver_Player(t *testing.T) {
+	m := new(MockDataService)
+	resolver := &resolver.QueryResolver{
+		DataService: m,
+	}
+
+	schema, _ := schema.String()
+	rootSchema := graphql.MustParseSchema(schema, resolver)
+
+	mockTeam := models.Team{
+		Name:   "Burnaby Skaters",
+		Abbr:   "BBY",
+		League: "nhl",
+	}
+
+	mockPlayer := models.Player{
+		FirstName: "Viktor",
+		LastName:  "Zykov",
+		Team:      mockTeam,
+	}
+
+	m.On("GetPlayerByName", mock.Anything, mock.Anything).Return(mockPlayer)
+	m.On("AddPlayer", mock.Anything, mock.Anything, mock.Anything).Return(mockPlayer, nil)
+
+	ctx := context.WithValue(context.Background(), "dataServce", m)
+
+	gqltesting.RunTests(t, []*gqltesting.Test{
+		{
+			Context: ctx,
+			Schema:  rootSchema,
+			Query: `
+			{
+				player(firstName: "Viktor", lastName: "Zykov") {
+					id
+					firstName
+					lastName
+					team {
+						name
+					}
+				}
+			}
+			`,
+			ExpectedResult: `
+			{
+				"player": {
+					"id": "0",
+					"firstName": "Viktor",
+					"lastName": "Zykov",
+					"team": {
+						"name": "Burnaby Skaters"
+					}
+				}
+			}
+			`,
+		},
+		{
+			Context: ctx,
+			Schema:  rootSchema,
+			Query: `
+			mutation _ {
+				addPlayer(firstName: "Ollie", lastName: "Inu", teamName: "Dogs") {
+				  id
+				}
+			  }
+			`,
+			ExpectedResult: `
+			{
+				"addPlayer": {
+					"id": "0"
+				}
+			}
+			`,
+		},
+	})
+	m.AssertExpectations(t)
+}
+
+// Graphql Testing testing for errors is broken.
+
+// func TestQueryResolver_Team_Failure(t *testing.T) {
+// 	m := new(MockDataService)
+// 	rs := &resolver.QueryResolver{
+// 		DataService: m,
+// 	}
+// 	schema, _ := schema.String()
+
+// 	rootSchema := graphql.MustParseSchema(schema, rs)
+
+// 	m.On("AddTeam", mock.Anything, mock.Anything, mock.Anything).Return(models.Team{}, errors.New("Error"))
+// 	ctx := context.WithValue(context.Background(), "dataServce", m)
+
+// 	gqltesting.RunTest(t, &gqltesting.Test{
+// 		Context: ctx,
+// 		Schema:  rootSchema,
+// 		Query: `
+// 			mutation _ {
+// 				addTeam(name: "1", abbr: "1", league: "1") {
+// 				  id
+// 				}
+// 			  }
+// 		`,
+// 		ExpectedResult: "",
+// 	},
+// 	)
+// }
