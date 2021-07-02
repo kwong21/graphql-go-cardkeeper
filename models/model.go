@@ -18,15 +18,3 @@ type Player struct {
 	TeamID    uint
 	Team      Team
 }
-
-type Config struct {
-	Database database
-}
-
-type database struct {
-	Server   string
-	User     string
-	Password string
-	Database string
-	Port     string
-}
