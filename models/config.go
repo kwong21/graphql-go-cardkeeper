@@ -1,3 +1,5 @@
+package models
+
 type Config struct {
 	Server   server
 	Database database
