@@ -9,7 +9,7 @@ services:
 
 jobs:
   include:
-    - stage: unit tests
+    - name: unit tests
       script: go test -v ./... -tags unit
-    - stage: integration tests
+    - name: integration tests
       script: go test -v ./... -tags integration
