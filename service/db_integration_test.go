@@ -15,7 +15,7 @@ import (
 func TestIntegrationDBClient_PG(t *testing.T) {
 	var conf models.Config
 
-	_, err := toml.DecodeFile("../config_local.toml", &conf)
+	_, err := toml.DecodeFile("../config_integration.toml", &conf)
 
 	require.NoError(t, err)
 
