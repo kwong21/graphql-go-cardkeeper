@@ -1,0 +1,7 @@
+# GIT files
+README.md
+.gitignore
+.travis.yml
+
+# Integration test config file
+config_intergration.toml
