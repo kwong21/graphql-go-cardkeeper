@@ -9,3 +9,23 @@ services:
       - POSTGRES_PASSWORD=password
     ports:
         - "5432:5432"
+    networks:
+      - backend
+  server:
+    image: kelvinwong1221/cardkeeper-graphql-server:latest
+    volumes: 
+      - ./config.toml:/config.toml
+    ports:
+      - "8080:8080"
+    depends_on:
+      - "db"
+    links:
+      - "db:database"
+    networks:
+      - backend
+
+volumes:
+  cardkeeper:
+
+networks:
+  backend:
