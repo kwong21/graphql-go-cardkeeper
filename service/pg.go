@@ -1,19 +1,22 @@
 package service
 
 import (
-	"errors"
 	"fmt"
+	"log"
+	"os"
+	"time"
 
 	"github.com/kwong21/graphql-go-cardkeeper/models"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
+	"gorm.io/gorm/logger"
 )
 
 type DBClient interface {
 	GetTeamsByLeague(string) []models.Team
-	GetTeamByName(string) (models.Team, error)
-	GetPlayerByName(string, string) models.Player
+	GetTeamByName(string) ([]models.Team, error)
+	GetPlayerByName(string, string) ([]models.Player, error)
 	AddTeam(models.Team) (models.Team, error)
 	AddPlayer(models.Player) (models.Player, error)
 }
@@ -26,7 +29,16 @@ func NewPGClient(config models.Config) (*PostgresClient, error) {
 	dsn := fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%s",
 		config.Database.Server, config.Database.User, config.Database.Password, config.Database.Database, config.Database.Port)
 
-	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
+	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{
+		Logger: logger.New(
+			log.New(os.Stdout, "\r\n", log.LstdFlags),
+			logger.Config{
+				SlowThreshold: time.Second,
+				LogLevel:      logger.Info,
+				Colorful:      false,
+			},
+		),
+	})
 
 	if err != nil {
 		return nil, err
@@ -43,9 +55,7 @@ func NewPGClient(config models.Config) (*PostgresClient, error) {
 func (pg PostgresClient) GetTeamsByLeague(league string) []models.Team {
 	var teams []models.Team
 
-	pg.client.Where("league = ?", league).Find(&teams)
-
-	// log.Info("Found %d of teams in league %s", result.RowsAffected, league)
+	pg.client.Where("league = ?", league).First(&teams)
 
 	return teams
 }
@@ -56,12 +66,12 @@ func (pg PostgresClient) AddTeam(team models.Team) (models.Team, error) {
 	return team, result.Error
 }
 
-func (pg PostgresClient) GetPlayerByName(firstName string, lastName string) models.Player {
-	var player models.Player
+func (pg PostgresClient) GetPlayerByName(firstName string, lastName string) ([]models.Player, error) {
+	var players []models.Player
 
-	pg.client.Where("firstName = ? AND lastName = ?", firstName, lastName).Find(&player)
+	r := pg.client.Where("first_name = ? AND last_name = ?", firstName, lastName).Find(&players)
 
-	return player
+	return players, r.Error
 }
 
 func (pg PostgresClient) AddPlayer(player models.Player) (models.Player, error) {
@@ -70,16 +80,12 @@ func (pg PostgresClient) AddPlayer(player models.Player) (models.Player, error) 
 	return player, result.Error
 }
 
-func (pg PostgresClient) GetTeamByName(teamName string) (models.Team, error) {
-	var team models.Team
+func (pg PostgresClient) GetTeamByName(teamName string) ([]models.Team, error) {
+	var teams []models.Team
 
-	pg.client.Where("name = ?", teamName).Find(&team)
+	r := pg.client.Where("name = ?", teamName).Find(&teams)
 
-	if team.ID <= 0 {
-		return team, errors.New(fmt.Sprintf("team with name %s does not exist", teamName))
-	}
-
-	return team, nil
+	return teams, r.Error
 }
 
 func (pg PostgresClient) runMigrations() {
