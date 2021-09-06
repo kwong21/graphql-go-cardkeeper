@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/BurntSushi/toml"
+	"github.com/kwong21/graphql-go-cardkeeper/mocks"
 	"github.com/kwong21/graphql-go-cardkeeper/models"
 	"github.com/kwong21/graphql-go-cardkeeper/service"
 	"github.com/stretchr/testify/assert"
@@ -14,12 +15,13 @@ import (
 
 func TestIntegrationDBClient_PG(t *testing.T) {
 	var conf models.Config
+	mockLoggerClient := new(mocks.MockLoggerClient)
 
 	_, err := toml.DecodeFile("../config_integration.toml", &conf)
 
 	require.NoError(t, err)
 
-	fixture := service.New(conf)
+	fixture := service.NewDBService(conf, mockLoggerClient)
 	require.NotNil(t, fixture)
 
 	t.Run("integration test - Add Team", func(t *testing.T) {

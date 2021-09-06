@@ -19,8 +19,10 @@ var (
 		Long: `This is the GraphQL server for maintaining players and teams to track cards for. 
 		The Cardkeeper-Server is an API service for UIs and other tools to communicate with`,
 		Run: func(cmd *cobra.Command, args []string) {
-			service := service.New(config)
-			server.Init(service)
+			l := service.NewLogger()
+			s := service.NewDBService(config, l)
+
+			server.Init(s, l)
 		},
 	}
 )

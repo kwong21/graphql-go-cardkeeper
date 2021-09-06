@@ -1,6 +1,6 @@
 // + build unit
 
-package resolver_test
+package mocks
 
 import (
 	"github.com/kwong21/graphql-go-cardkeeper/models"
@@ -11,14 +11,14 @@ type MockDataService struct {
 	mock.Mock
 }
 
+type MockLoggerClient struct {
+	mock.Mock
+}
+
 func (s *MockDataService) GetTeamsByLeague(league string) []models.Team {
-	var teams []models.Team
 	args := s.Called(league)
-	t := args.Get(0).(models.Team)
 
-	teams = append(teams, t)
-
-	return teams
+	return args.Get(0).([]models.Team)
 }
 
 func (s *MockDataService) AddTeam(name string, league string, abbr string) (models.Team, error) {
@@ -27,14 +27,30 @@ func (s *MockDataService) AddTeam(name string, league string, abbr string) (mode
 	return args.Get(0).(models.Team), args.Error(1)
 }
 
-func (s *MockDataService) GetPlayerByName(firstName string, lastName string) models.Player {
+func (s *MockDataService) GetPlayerByName(firstName string, lastName string) ([]models.Player, error) {
 	args := s.Called(firstName, lastName)
 
-	return args.Get(0).(models.Player)
+	return args.Get(0).([]models.Player), args.Error(1)
 }
 
 func (s *MockDataService) AddPlayer(firstName string, lastName string, teamName string) (models.Player, error) {
 	args := s.Called(firstName, lastName, teamName)
 
 	return args.Get(0).(models.Player), args.Error(1)
+}
+
+func (l *MockLoggerClient) Warn(msg string) {
+	l.Called(msg)
+}
+
+func (l *MockLoggerClient) Debug(msg string) {
+	l.Called(msg)
+}
+
+func (l *MockLoggerClient) Info(msg string) {
+	l.Called(msg)
+}
+
+func (l *MockLoggerClient) Error(msg string) {
+	l.Called(msg)
 }

@@ -7,9 +7,8 @@ import (
 	"github.com/kwong21/graphql-go-cardkeeper/service"
 )
 
-func Init(s service.DataService) {
-
-	rootResolver, err := resolver.NewRoot(s)
+func Init(s service.DataService, l service.Logger) {
+	rootResolver, err := resolver.NewRoot(s, l)
 
 	if err != nil {
 		log.Fatal("Cannot instantiate the root resolver", err)

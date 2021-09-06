@@ -1,13 +1,14 @@
 package service
 
 import (
+	"errors"
 	"log"
 
 	"github.com/kwong21/graphql-go-cardkeeper/models"
 )
 
 type DataService interface {
-	GetPlayerByName(firstName string, lastName string) models.Player
+	GetPlayerByName(firstName string, lastName string) ([]models.Player, error)
 	GetTeamsByLeague(league string) []models.Team
 	AddTeam(name string, abbr string, league string) (models.Team, error)
 	AddPlayer(firstName string, lastName string, teamName string) (models.Player, error)
@@ -17,7 +18,7 @@ type DatabaseService struct {
 	client DBClient
 }
 
-func New(config models.Config) DataService {
+func NewDBService(config models.Config, l Logger) DataService {
 
 	c, err := NewPGClient(config)
 
@@ -31,15 +32,11 @@ func New(config models.Config) DataService {
 }
 
 func (d DatabaseService) GetTeamsByLeague(league string) []models.Team {
-	teams := d.client.GetTeamsByLeague(league)
-
-	return teams
+	return d.client.GetTeamsByLeague(league)
 }
 
-func (d DatabaseService) GetPlayerByName(firstName string, lastName string) models.Player {
-	player := d.client.GetPlayerByName(firstName, lastName)
-
-	return player
+func (d DatabaseService) GetPlayerByName(firstName string, lastName string) ([]models.Player, error) {
+	return d.client.GetPlayerByName(firstName, lastName)
 }
 
 func (d DatabaseService) AddTeam(name string, abbr string, league string) (models.Team, error) {
@@ -55,17 +52,22 @@ func (d DatabaseService) AddTeam(name string, abbr string, league string) (model
 }
 
 func (d DatabaseService) AddPlayer(firstName string, lastName string, teamName string) (models.Player, error) {
-	t, err := d.client.GetTeamByName(teamName)
+	teams, err := d.client.GetTeamByName(teamName)
 
 	if err != nil {
 		return models.Player{}, err
 	}
 
+	if len(teams) < 1 {
+		return models.Player{}, errors.New("Team does not exist. " + teamName)
+	}
+
+	team := teams[0]
 	newPlayer := models.Player{
 		FirstName: firstName,
 		LastName:  lastName,
-		TeamID:    t.ID,
-		Team:      t,
+		TeamID:    team.ID,
+		Team:      team,
 	}
 
 	player, err := d.client.AddPlayer(newPlayer)
