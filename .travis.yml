@@ -6,10 +6,27 @@ go:
 
 services:
   - postgresql
+  - docker
 
 jobs:
   include:
-    - name: unit tests
+    - stage: "Unit tests"
+      name: unit tests
       script: go test -v ./... -tags unit
-    - name: integration tests
+    
+    - stage: "Integration tests"
+      name: integration tests
       script: go test -v ./... -tags integration
+    
+    - stage: "Build docker container"
+      name: "Build Dockerfile"
+      script: docker build -t ${TRAVIS_REPO_SLUG} .
+
+    - stage: "Push to ECR"
+      if: tag IS present
+      name: "Push to ECR if a tagged commit"
+      script:
+        - pip install --user awscli
+        - export PATH=$PATH:$HOME/.local/bin
+        - eval $(aws ecr get-login --region us-west-2)
+        - docker build . --tag "${TRAVIS_REPO_SLUG}:latest" --tag "${TRAVIS_REPO_SLUG}:${TRAVIS_TAG}"
