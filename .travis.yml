@@ -6,6 +6,7 @@ go:
 
 services:
   - postgresql
+  - docker
 
 jobs:
   include:
@@ -19,3 +20,4 @@ jobs:
     
     - stage: "Build docker container"
       name: "Build Dockerfile"
+      script: docker build -t kwong21/graphql-go-cardkeeper .
