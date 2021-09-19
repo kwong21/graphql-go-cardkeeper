@@ -9,7 +9,13 @@ services:
 
 jobs:
   include:
-    - name: unit tests
+    - stage: "Unit tests"
+      name: unit tests
       script: go test -v ./... -tags unit
-    - name: integration tests
+    
+    - stage: "Integration tests"
+      name: integration tests
       script: go test -v ./... -tags integration
+    
+    - stage: "Build docker container"
+      name: "Build Dockerfile"
