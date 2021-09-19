@@ -20,4 +20,14 @@ jobs:
     
     - stage: "Build docker container"
       name: "Build Dockerfile"
-      script: docker build -t kwong21/graphql-go-cardkeeper .
+      script: docker build -t ${TRAVIS_REPO_SLUG} .
+
+    - stage: "Push to ECR"
+      # if: tag != ""
+      name: "Push to ECR if a tagged commit"
+      script:
+        - pip install --user awscli
+        - export PATH=$PATH:$HOME/.local/bin
+        - eval $(aws ecr get-login --region us-west-2)
+        - docker build -t . --tag ${TRAVIS_REPO_SLUG}:latest --tag ${TRAVIS_REPO_SLUG}:${TRAVIS_TAG}
+        
