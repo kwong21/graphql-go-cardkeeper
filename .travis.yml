@@ -29,4 +29,4 @@ jobs:
         - pip install --user awscli
         - export PATH=$PATH:$HOME/.local/bin
         - eval $(aws ecr get-login --region us-west-2)
-        - docker build -t . --tag "${TRAVIS_REPO_SLUG}:latest" --tag "${TRAVIS_REPO_SLUG}:${TRAVIS_TAG}"
+        - docker build . --tag "${TRAVIS_REPO_SLUG}:latest" --tag "${TRAVIS_REPO_SLUG}:${TRAVIS_TAG}"
