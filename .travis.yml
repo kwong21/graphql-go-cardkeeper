@@ -30,4 +30,5 @@ jobs:
         - export PATH=$PATH:$HOME/.local/bin
         - eval $(aws ecr get-login --region us-west-2)
         - docker build . --tag "${ECR_REPO}:latest" --tag "${ECR_REPO}:${TRAVIS_TAG}"
-        - docker push --all-tags "${ECR_REPO}"
+        - docker push "${ECR_REPO}:latest"
+        - docker push "${ECR_REPO}:${TRAVIS_TAG}"
