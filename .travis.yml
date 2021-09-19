@@ -23,7 +23,7 @@ jobs:
       script: docker build -t ${TRAVIS_REPO_SLUG} .
 
     - stage: "Push to ECR"
-      # if: tag != ""
+      if: tag != ""
       name: "Push to ECR if a tagged commit"
       script:
         - pip install --user awscli
