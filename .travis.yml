@@ -28,7 +28,7 @@ jobs:
       script:
         - pip install --user awscli
         - export PATH=$PATH:$HOME/.local/bin
-        - eval $(aws ecr get-login --region us-west-2)
+        - eval $(aws ecr get-login --region us-west-2 | docker login --username AWS --password-stdin 968977856753.dkr.ecr.us-west-2.amazonaws.com/deephalf_ecr)
         - docker build . --tag "${ECR_REPO}:latest" --tag "${ECR_REPO}:${TRAVIS_TAG}"
         - docker push "${ECR_REPO}:latest"
         - docker push "${ECR_REPO}:${TRAVIS_TAG}"
