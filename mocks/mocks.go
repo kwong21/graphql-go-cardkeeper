@@ -15,6 +15,12 @@ type MockLoggerClient struct {
 	mock.Mock
 }
 
+func (s *MockDataService) GetAllTeams() ([]models.Team, error) {
+	args := s.Called()
+
+	return args.Get(0).([]models.Team), args.Error(1)
+}
+
 func (s *MockDataService) GetTeamsByLeague(league string) []models.Team {
 	args := s.Called(league)
 

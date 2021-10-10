@@ -14,6 +14,7 @@ import (
 )
 
 type DBClient interface {
+	GetAllTeams() ([]models.Team, error)
 	GetTeamsByLeague(string) []models.Team
 	GetTeamByName(string) ([]models.Team, error)
 	GetPlayerByName(string, string) ([]models.Player, error)
@@ -52,6 +53,14 @@ func NewPGClient(config models.Config) (*PostgresClient, error) {
 	return c, nil
 }
 
+func (pg PostgresClient) GetAllTeams() ([]models.Team, error) {
+	var teams []models.Team
+
+	r := pg.client.Find(&teams)
+
+	return teams, r.Error
+}
+
 func (pg PostgresClient) GetTeamsByLeague(league string) []models.Team {
 	var teams []models.Team
 
@@ -75,9 +84,9 @@ func (pg PostgresClient) GetPlayerByName(firstName string, lastName string) ([]m
 }
 
 func (pg PostgresClient) AddPlayer(player models.Player) (models.Player, error) {
-	result := pg.client.Omit(clause.Associations).Create(&player)
+	r := pg.client.Omit(clause.Associations).Create(&player)
 
-	return player, result.Error
+	return player, r.Error
 }
 
 func (pg PostgresClient) GetTeamByName(teamName string) ([]models.Team, error) {

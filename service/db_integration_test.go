@@ -32,6 +32,15 @@ func TestIntegrationDBClient_PG(t *testing.T) {
 		assert.NotEmpty(t, team.ID)
 	})
 
+	t.Run("integration test - Get all teams", func(t *testing.T) {
+		_, err := fixture.AddTeam("test1", "test2", "mlb")
+		teams, err := fixture.GetAllTeams()
+
+		require.NoError(t, err)
+		require.NotNil(t, teams)
+		assert.Equal(t, 2, len(teams))
+	})
+
 	t.Run("integration test - Get Teams", func(t *testing.T) {
 		team, err := fixture.AddTeam("test2", "tst2", "nhl")
 		teams := fixture.GetTeamsByLeague("nhl")

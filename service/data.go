@@ -9,6 +9,7 @@ import (
 
 type DataService interface {
 	GetPlayerByName(firstName string, lastName string) ([]models.Player, error)
+	GetAllTeams() ([]models.Team, error)
 	GetTeamsByLeague(league string) []models.Team
 	AddTeam(name string, abbr string, league string) (models.Team, error)
 	AddPlayer(firstName string, lastName string, teamName string) (models.Player, error)
@@ -29,6 +30,10 @@ func NewDBService(config models.Config, l Logger) DataService {
 	return &DatabaseService{
 		client: c,
 	}
+}
+
+func (d DatabaseService) GetAllTeams() ([]models.Team, error) {
+	return d.client.GetAllTeams()
 }
 
 func (d DatabaseService) GetTeamsByLeague(league string) []models.Team {

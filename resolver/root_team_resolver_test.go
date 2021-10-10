@@ -11,11 +11,16 @@ import (
 	"github.com/stretchr/testify/mock"
 )
 
+const (
+	teamData key = iota
+	allTeamData
+)
+
 func TestRootResolver_Team_NoResults(t *testing.T) {
 	rootSchema, mockDataService, _ := getTestFixtures()
 
 	mockDataService.On("GetTeamsByLeague", mock.Anything).Return([]models.Team{})
-	ctx := context.WithValue(context.Background(), "dataservice", mockDataService)
+	ctx := context.WithValue(context.Background(), teamData, mockDataService)
 
 	gqltesting.RunTests(t, []*gqltesting.Test{
 		{
@@ -41,13 +46,51 @@ func TestRootResolver_Team_NoResults(t *testing.T) {
 	mockDataService.AssertExpectations(t)
 }
 
+func TestRootResolver_Teams(t *testing.T) {
+	rootSchema, mockDataService, _ := getTestFixtures()
+
+	mockTeams := []models.Team{
+		mockHockeyTeam,
+		mockBaseBallTeam,
+	}
+
+	mockDataService.On("GetAllTeams").Return(mockTeams, nil)
+	ctx := context.WithValue(context.Background(), allTeamData, mockDataService)
+
+	gqltesting.RunTest(t, &gqltesting.Test{
+		Context: ctx,
+		Schema:  rootSchema,
+		Query: `
+		{
+			teams {
+			name
+			}
+		}
+		`,
+		ExpectedResult: `
+		{
+			"teams": [{
+				"name": "Burnaby Skaters"
+			},
+			{
+				"name": "Vancouver Canadians"	
+			}]
+		}
+		`,
+	})
+}
+
 func TestRootResolver_Team(t *testing.T) {
 	rootSchema, mockDataService, _ := getTestFixtures()
 
-	mockDataService.On("GetTeamsByLeague", mock.Anything).Return(mockTeams)
-	mockDataService.On("AddTeam", mock.Anything, mock.Anything, mock.Anything).Return(mockTeam, nil)
+	nhlTeams := []models.Team{
+		mockHockeyTeam,
+	}
 
-	ctx := context.WithValue(context.Background(), "dataServce", mockDataService)
+	mockDataService.On("GetTeamsByLeague", mock.Anything).Return(nhlTeams)
+	mockDataService.On("AddTeam", mock.Anything, mock.Anything, mock.Anything).Return(mockHockeyTeam, nil)
+
+	ctx := context.WithValue(context.Background(), teamData, mockDataService)
 
 	gqltesting.RunTests(t, []*gqltesting.Test{
 		{

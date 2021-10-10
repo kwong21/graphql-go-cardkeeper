@@ -14,7 +14,7 @@ import (
 type key int
 
 const (
-	dataserviceKey key = iota
+	playerData key = iota
 )
 
 func TestRootResolver_Player_NoResults(t *testing.T) {
@@ -22,7 +22,7 @@ func TestRootResolver_Player_NoResults(t *testing.T) {
 
 	mockDataService.On("GetPlayerByName", mock.Anything, mock.Anything).Return([]models.Player{}, nil)
 
-	ctx := context.WithValue(context.Background(), dataserviceKey, mockDataService)
+	ctx := context.WithValue(context.Background(), playerData, mockDataService)
 
 	gqltesting.RunTests(t, []*gqltesting.Test{
 		{
@@ -56,7 +56,7 @@ func TestRootResolver_Player(t *testing.T) {
 	mockDataService.On("GetPlayerByName", mock.Anything, mock.Anything).Return(mockPlayers, nil)
 	mockDataService.On("AddPlayer", mock.Anything, mock.Anything, mock.Anything).Return(mockPlayer, nil)
 
-	ctx := context.WithValue(context.Background(), dataserviceKey, mockDataService)
+	ctx := context.WithValue(context.Background(), playerData, mockDataService)
 
 	gqltesting.RunTests(t, []*gqltesting.Test{
 		{

@@ -11,18 +11,22 @@ import (
 	"github.com/stretchr/testify/mock"
 )
 
-var mockTeam = models.Team{
+var mockHockeyTeam = models.Team{
 	Name:   "Burnaby Skaters",
 	Abbr:   "BBY",
 	League: "nhl",
 }
 
-var mockTeams = []models.Team{mockTeam}
+var mockBaseBallTeam = models.Team{
+	Name:   "Vancouver Canadians",
+	Abbr:   "CND",
+	League: "mlb",
+}
 
 var mockPlayer = models.Player{
 	FirstName: "Viktor",
 	LastName:  "Zykov",
-	Team:      mockTeam,
+	Team:      mockHockeyTeam,
 }
 
 var mockPlayers = []models.Player{mockPlayer}

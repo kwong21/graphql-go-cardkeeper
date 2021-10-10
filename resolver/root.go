@@ -20,6 +20,31 @@ func NewRoot(s service.DataService, l service.Logger) (*QueryResolver, error) {
 	}, nil
 }
 
+// Teams resolves the query to GET all teams
+func (r QueryResolver) Teams(ctx context.Context) (*[]*TeamResolver, error) {
+	r.LoggerService.Info("Retrieving all teams")
+	teams, err := r.DataService.GetAllTeams()
+
+	var resolved = make([]*TeamResolver, 0)
+
+	if err != nil {
+		r.LoggerService.Error("Could not retrieve all teams in the database")
+		r.LoggerService.Error(err.Error())
+
+		qe := &errors.QueryError{
+			Message: fmt.Sprintf("error: Unable to get all teams: %s", err),
+		}
+		return nil, qe
+	}
+
+	for idx := range teams {
+		resolved = append(resolved, &TeamResolver{t: &teams[idx]})
+
+	}
+
+	return &resolved, nil
+}
+
 // Team resolves the query to GET teams belonging in `league`
 func (r QueryResolver) Team(ctx context.Context, args TeamQueryArgs) (*[]*TeamResolver, error) {
 	var resolved = make([]*TeamResolver, 0)
@@ -27,8 +52,8 @@ func (r QueryResolver) Team(ctx context.Context, args TeamQueryArgs) (*[]*TeamRe
 	r.LoggerService.Info("Retrieving teams in league " + args.League)
 	teams := r.DataService.GetTeamsByLeague(args.League)
 
-	for _, t := range teams {
-		resolved = append(resolved, &TeamResolver{t: &t})
+	for idx := range teams {
+		resolved = append(resolved, &TeamResolver{t: &teams[idx]})
 	}
 
 	r.LoggerService.Info(fmt.Sprintf("Found %d teams", len(resolved)))
@@ -62,8 +87,8 @@ func (r QueryResolver) Player(ctx context.Context, args PlayerQueryArgs) (*[]*Pl
 	r.LoggerService.Info(fmt.Sprintf("Retrieving player with first_name %s and last_name %s", args.FirstName, args.LastName))
 	players, err := r.DataService.GetPlayerByName(args.FirstName, args.LastName)
 
-	for _, p := range players {
-		resolved = append(resolved, &PlayerResolver{p: &p})
+	for idx := range players {
+		resolved = append(resolved, &PlayerResolver{p: &players[idx]})
 	}
 
 	if err != nil {

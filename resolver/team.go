@@ -11,6 +11,7 @@ type TeamQueryArgs struct {
 	League string
 	Abbr   string
 }
+
 type TeamResolver struct {
 	t *models.Team
 }
