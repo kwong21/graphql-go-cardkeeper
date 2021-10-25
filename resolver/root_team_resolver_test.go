@@ -19,7 +19,7 @@ const (
 func TestRootResolver_Team_NoResults(t *testing.T) {
 	rootSchema, mockDataService, _ := getTestFixtures()
 
-	mockDataService.On("GetTeamsByLeague", mock.Anything).Return([]models.Team{})
+	mockDataService.On("GetTeamsByLeague", mock.Anything).Return(&[]*models.TeamResolver{}, nil)
 	ctx := context.WithValue(context.Background(), teamData, mockDataService)
 
 	gqltesting.RunTests(t, []*gqltesting.Test{
@@ -49,12 +49,12 @@ func TestRootResolver_Team_NoResults(t *testing.T) {
 func TestRootResolver_Teams(t *testing.T) {
 	rootSchema, mockDataService, _ := getTestFixtures()
 
-	mockTeams := []models.Team{
-		mockHockeyTeam,
-		mockBaseBallTeam,
+	mockTeams := []*models.TeamResolver{
+		&models.TeamResolver{T: &mockHockeyTeam},
+		&models.TeamResolver{T: &mockBaseBallTeam},
 	}
 
-	mockDataService.On("GetAllTeams").Return(mockTeams, nil)
+	mockDataService.On("GetAllTeams").Return(&mockTeams, nil)
 	ctx := context.WithValue(context.Background(), allTeamData, mockDataService)
 
 	gqltesting.RunTest(t, &gqltesting.Test{
@@ -63,7 +63,7 @@ func TestRootResolver_Teams(t *testing.T) {
 		Query: `
 		{
 			teams {
-			name
+			name 
 			}
 		}
 		`,

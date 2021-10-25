@@ -58,6 +58,32 @@ func TestIntegrationDBClient_PG(t *testing.T) {
 		assert.NotEmpty(t, player.ID)
 	})
 
+	t.Run("integration test - Get Players", func(t *testing.T) {
+		_, err := fixture.AddPlayer("Sana", "Minatozaki", "test2")
+		
+		players, err := fixture.GetAllPlayers()
+
+		require.NoError(t, err)
+		require.NotNil(t, players)
+		assert.Equal(t, 2, len(players))
+	}
+
+	t.Run("integration test - Get Player on team test2"), func(t *testing.T) {
+		players, err := fixture.GetPlayersOnTeam("test2")
+
+		require.NoError(t, err)
+		require.NotNil(t, players)
+		assert.Equal(t, 1, len(players))
+	}
+	
+	t.Run("integration test - Get player by ID"), func(t *testing.T) {
+		player, err := fixture.GetPlayerByID("1")
+
+		require.NoError(t, err)
+		require.NotNil(t, player)
+		assert.Equal(1, player.ID)
+	}
+
 	t.Run("integration test - error when adding player when team ID does not exist", func(t *testing.T) {
 		player, err := fixture.AddPlayer("Brock", "Boeser", "Some other team")
 

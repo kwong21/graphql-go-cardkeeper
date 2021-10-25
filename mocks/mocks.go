@@ -15,34 +15,46 @@ type MockLoggerClient struct {
 	mock.Mock
 }
 
-func (s *MockDataService) GetAllTeams() ([]models.Team, error) {
+func (s *MockDataService) GetAllTeams() (*[]*models.TeamResolver, error) {
 	args := s.Called()
 
-	return args.Get(0).([]models.Team), args.Error(1)
+	return args.Get(0).(*[]*models.TeamResolver), args.Error(1)
 }
 
-func (s *MockDataService) GetTeamsByLeague(league string) []models.Team {
+func (s *MockDataService) GetTeamsByLeague(league string) (*[]*models.TeamResolver, error) {
 	args := s.Called(league)
 
-	return args.Get(0).([]models.Team)
+	return args.Get(0).(*[]*models.TeamResolver), args.Error(1)
 }
 
-func (s *MockDataService) AddTeam(name string, league string, abbr string) (models.Team, error) {
+func (s *MockDataService) AddTeam(name string, league string, abbr string) (*models.TeamResolver, error) {
 	args := s.Called(name, league, abbr)
 
-	return args.Get(0).(models.Team), args.Error(1)
+	return args.Get(0).(*models.TeamResolver), args.Error(1)
 }
 
-func (s *MockDataService) GetPlayerByName(firstName string, lastName string) ([]models.Player, error) {
-	args := s.Called(firstName, lastName)
+func (s *MockDataService) GetAllPlayers() (*[]*models.PlayerResolver, error) {
+	args := s.Called()
 
-	return args.Get(0).([]models.Player), args.Error(1)
+	return args.Get(0).(*[]*models.PlayerResolver), args.Error(1)
 }
 
-func (s *MockDataService) AddPlayer(firstName string, lastName string, teamName string) (models.Player, error) {
+func (s *MockDataService) GetPlayerByID(id string) (*[]*models.PlayerResolver, error) {
+	args := s.Called(id)
+
+	return args.Get(0).(*[]*models.PlayerResolver), args.Error(1)
+}
+
+func (s *MockDataService) GetPlayersOnTeam(team string) (*[]*models.PlayerResolver, error) {
+	args := s.Called(team)
+
+	return args.Get(0).(*[]*models.PlayerResolver), args.Error(1)
+}
+
+func (s *MockDataService) AddPlayer(firstName string, lastName string, teamName string) (*models.PlayerResolver, error) {
 	args := s.Called(firstName, lastName, teamName)
 
-	return args.Get(0).(models.Player), args.Error(1)
+	return args.Get(0).(*models.PlayerResolver), args.Error(1)
 }
 
 func (l *MockLoggerClient) Warn(msg string) {

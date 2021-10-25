@@ -5,8 +5,11 @@ type Query {
     teams: [Team]
     # Search for a watchlisted Team by name or league, or get all watchlisted teams when no params provided.
     team(league: String!): [Team]
-    # Search a player by name
-    player(firstName: String!, lastName: String!): [Player]
+    # Get all players.
+    # If a team name is provided, return all players on a team
+    players(teamName: String): [Player]
+    # Search a player by ID
+    player(id: ID!): [Player]
     # Search for players by team
     # playerOnTeam(team: String!): [Player]
 }

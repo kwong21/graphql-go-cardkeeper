@@ -9,6 +9,7 @@ import (
 	"github.com/graph-gophers/graphql-go/gqltesting"
 	"github.com/kwong21/graphql-go-cardkeeper/models"
 	"github.com/stretchr/testify/mock"
+	"gorm.io/gorm"
 )
 
 type key int
@@ -20,7 +21,7 @@ const (
 func TestRootResolver_Player_NoResults(t *testing.T) {
 	rootSchema, mockDataService, _ := getTestFixtures()
 
-	mockDataService.On("GetPlayerByName", mock.Anything, mock.Anything).Return([]models.Player{}, nil)
+	mockDataService.On("GetPlayerByID", mock.Anything).Return(&[]*models.PlayerResolver{}, nil)
 
 	ctx := context.WithValue(context.Background(), playerData, mockDataService)
 
@@ -30,7 +31,7 @@ func TestRootResolver_Player_NoResults(t *testing.T) {
 			Schema:  rootSchema,
 			Query: `
 			{
-				player(firstName: "Viktor", lastName: "Zykov") {
+				player(id: 1) {
 					id
 					firstName
 					lastName
@@ -50,10 +51,75 @@ func TestRootResolver_Player_NoResults(t *testing.T) {
 	mockDataService.AssertExpectations(t)
 }
 
+func TestRootResolver_Players(t *testing.T) {
+	rootSchema, mockDataService, _ := getTestFixtures()
+
+	mockTeamTwo := models.Team{
+		Name:   "JYP Twice",
+		Abbr:   "JYP",
+		League: "kbl",
+	}
+
+	mockPlayerTwo := &models.Player{
+		Model: gorm.Model{
+			ID: 99,
+		},
+		FirstName: "Sana",
+		LastName:  "Minatozaki",
+		Team:      mockTeamTwo,
+	}
+
+	testPlayers := &[]*models.PlayerResolver{
+		&models.PlayerResolver{P: &mockPlayer},
+		&models.PlayerResolver{P: mockPlayerTwo},
+	}
+
+	mockDataService.On("GetAllPlayers").Return(testPlayers, nil)
+	mockDataService.On("GetPlayersOnTeam", "JYP Twice").Return(&[]*models.PlayerResolver{
+		&models.PlayerResolver{P: mockPlayerTwo}}, nil)
+	ctx := context.WithValue(context.Background(), playerData, mockDataService)
+
+	gqltesting.RunTests(t, []*gqltesting.Test{
+		{
+			Context: ctx,
+			Schema:  rootSchema,
+			Query: `
+			{
+				players {
+				firstName
+				team {
+					name
+				}
+			}
+			}
+			`,
+			ExpectedResult: `
+			{
+				"players":
+				[
+					{
+						"firstName": "Viktor",
+						"team": {
+						"name": "Burnaby Skaters"
+						}
+					},
+					{
+						"firstName": "Sana",
+						"team": {
+							"name": "JYP Twice"
+						}
+					}
+				]
+			}
+		`,
+		},
+	})
+}
+
 func TestRootResolver_Player(t *testing.T) {
 	rootSchema, mockDataService, _ := getTestFixtures()
 
-	mockDataService.On("GetPlayerByName", mock.Anything, mock.Anything).Return(mockPlayers, nil)
+	mockDataService.On("GetPlayerByID", mock.Anything).Return(mockPlayer, nil)
 	mockDataService.On("AddPlayer", mock.Anything, mock.Anything, mock.Anything).Return(mockPlayer, nil)
 
 	ctx := context.WithValue(context.Background(), playerData, mockDataService)
@@ -64,7 +130,7 @@ func TestRootResolver_Player(t *testing.T) {
 			Schema:  rootSchema,
 			Query: `
 			{
-				player(firstName: "Viktor", lastName: "Zykov") {
+				player(id: 99) {
 					id
 					firstName
 					lastName
@@ -77,7 +143,7 @@ func TestRootResolver_Player(t *testing.T) {
 			ExpectedResult: `
 			{
 				"player": [{
-					"id": "0",
+					"id": "99",
 					"firstName": "Viktor",
 					"lastName": "Zykov",
 					"team": {
@@ -100,7 +166,7 @@ func TestRootResolver_Player(t *testing.T) {
 			ExpectedResult: `
 			{
 				"addPlayer": {
-					"id": "0"
+					"id": "99"
 				}
 			}
 			`,

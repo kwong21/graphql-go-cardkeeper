@@ -9,6 +9,7 @@ import (
 	"github.com/kwong21/graphql-go-cardkeeper/resolver"
 	"github.com/kwong21/graphql-go-cardkeeper/schema"
 	"github.com/stretchr/testify/mock"
+	"gorm.io/gorm"
 )
 
 var mockHockeyTeam = models.Team{
@@ -24,6 +25,9 @@ var mockBaseBallTeam = models.Team{
 }
 
 var mockPlayer = models.Player{
+	Model: gorm.Model{
+		ID: 99,
+	},
 	FirstName: "Viktor",
 	LastName:  "Zykov",
 	Team:      mockHockeyTeam,

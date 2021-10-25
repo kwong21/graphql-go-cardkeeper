@@ -17,6 +17,9 @@ type DBClient interface {
 	GetAllTeams() ([]models.Team, error)
 	GetTeamsByLeague(string) []models.Team
 	GetTeamByName(string) ([]models.Team, error)
+	GetAllPlayers() ([]models.Player, error)
+	GetPlayersOnTeam(string) ([]models.Player, error)
+	GetPlayerByID(string) (models.Player, error)
 	GetPlayerByName(string, string) ([]models.Player, error)
 	AddTeam(models.Team) (models.Team, error)
 	AddPlayer(models.Player) (models.Player, error)
@@ -73,6 +76,30 @@ func (pg PostgresClient) AddTeam(team models.Team) (models.Team, error) {
 	result := pg.client.Create(&team)
 
 	return team, result.Error
+}
+
+func (pg PostgresClient) GetAllPlayers() ([]models.Player, error) {
+	var players []models.Player
+
+	r := pg.client.Find(&players)
+
+	return players, r.Error
+}
+
+func (pg PostgresClient) GetPlayersOnTeam(team string) ([]models.Player, error) {
+	var players []models.Player
+
+	r := pg.client.Where("team_name = ?", team).Find(&players)
+
+	return players, r.Error
+}
+
+func (pg PostgresClient) GetPlayerByID(id string) (models.Player, error) {
+	var player models.Player
+
+	r := pg.client.Where("id = ?", id).Find(&player)
+
+	return player, r.Error
 }
 
 func (pg PostgresClient) GetPlayerByName(firstName string, lastName string) ([]models.Player, error) {
