@@ -62,7 +62,7 @@ func TestIntegrationDBClient_PG(t *testing.T) {
 		mockPlayerInput := models.Player{
 			FirstName: "Sana",
 			LastName: "Minatozaki",
-			TeamID: "1"
+			TeamID: "1",
 		}
 		_, err := fixture.AddPlayer(mockPlayerInput)
 		
