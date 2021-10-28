@@ -51,8 +51,8 @@ func (s *MockDataService) GetPlayersOnTeam(team string) (*[]*models.PlayerResolv
 	return args.Get(0).(*[]*models.PlayerResolver), args.Error(1)
 }
 
-func (s *MockDataService) AddPlayer(firstName string, lastName string, teamName string) (*models.PlayerResolver, error) {
-	args := s.Called(firstName, lastName, teamName)
+func (s *MockDataService) AddPlayer(playerInput models.PlayerInputArgs) (*models.PlayerResolver, error) {
+	args := s.Called(playerInput)
 
 	return args.Get(0).(*models.PlayerResolver), args.Error(1)
 }

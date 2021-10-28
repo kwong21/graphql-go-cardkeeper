@@ -3,5 +3,5 @@ type Mutation {
     # Add a team to watchlist
     addTeam(name: String!, abbr: String!, league: String!): Team
     # Add a player to a watchlist
-    addPlayer(firstName: String!, lastName: String!, teamName: String!): Player 
+    addPlayer(player: PlayerInput!): Player 
 }

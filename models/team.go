@@ -6,6 +6,7 @@ import (
 	"gorm.io/gorm"
 )
 
+// Team contains information for a sports team
 type Team struct {
 	gorm.Model
 	Name   string `gorm:"not null;uniqueIndex:idx_team;default:null"`
@@ -13,6 +14,7 @@ type Team struct {
 	League string
 }
 
+// TeamResolver is the struct representation of the GraphQL object
 type TeamResolver struct {
 	T *Team
 }

@@ -83,12 +83,10 @@ func TestRootResolver_Teams(t *testing.T) {
 func TestRootResolver_Team(t *testing.T) {
 	rootSchema, mockDataService, _ := getTestFixtures()
 
-	nhlTeams := []models.Team{
-		mockHockeyTeam,
-	}
-
-	mockDataService.On("GetTeamsByLeague", mock.Anything).Return(nhlTeams)
-	mockDataService.On("AddTeam", mock.Anything, mock.Anything, mock.Anything).Return(mockHockeyTeam, nil)
+	mockDataService.On("GetTeamsByLeague", mock.Anything).Return(&[]*models.TeamResolver{
+		&models.TeamResolver{T: &mockHockeyTeam},
+	}, nil)
+	mockDataService.On("AddTeam", mock.Anything, mock.Anything, mock.Anything).Return(&models.TeamResolver{T: &mockHockeyTeam}, nil)
 
 	ctx := context.WithValue(context.Background(), teamData, mockDataService)
 

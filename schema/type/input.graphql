@@ -1,0 +1,6 @@
+# Input paramters for adding a sports team
+input PlayerInput {
+    teamID: String!
+    firstName: String!
+    lastName: String!
+}

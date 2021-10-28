@@ -14,7 +14,7 @@ type DataService interface {
 	GetAllTeams() (*[]*models.TeamResolver, error)
 	GetTeamsByLeague(league string) (*[]*models.TeamResolver, error)
 	AddTeam(name string, abbr string, league string) (*models.TeamResolver, error)
-	AddPlayer(firstName string, lastName string, teamName string) (*models.PlayerResolver, error)
+	AddPlayer(player models.PlayerInputArgs) (*models.PlayerResolver, error)
 }
 
 type DatabaseService struct {
@@ -121,21 +121,20 @@ func (d DatabaseService) AddTeam(name string, abbr string, league string) (*mode
 	return resolved, err
 }
 
-func (d DatabaseService) AddPlayer(firstName string, lastName string, teamName string) (*models.PlayerResolver, error) {
-	teams, err := d.client.GetTeamByName(teamName)
+func (d DatabaseService) AddPlayer(playerInput models.PlayerInputArgs) (*models.PlayerResolver, error) {
+	team, err := d.client.GetTeamByID(playerInput.TeamID)
 
 	if err != nil {
 		return nil, err
 	}
 
-	if len(teams) < 1 {
-		return nil, errors.New("Team does not exist. " + teamName)
+	if (team == models.Team{}) {
+		return nil, errors.New("Team with ID " + playerInput.TeamID + " does not exist")
 	}
 
-	team := teams[0]
 	newPlayer := models.Player{
-		FirstName: firstName,
-		LastName:  lastName,
+		FirstName: playerInput.FirstName,
+		LastName:  playerInput.LastName,
 		TeamID:    team.ID,
 		Team:      team,
 	}

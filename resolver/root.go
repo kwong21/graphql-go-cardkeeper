@@ -119,8 +119,8 @@ func (r QueryResolver) Player(ctx context.Context, args PlayerQueryArgs) (*[]*mo
 }
 
 // AddPlayer reoslves the query to POST a player to the database
-func (r QueryResolver) AddPlayer(ctx context.Context, args PlayerQueryArgs) (*models.PlayerResolver, error) {
-	p, err := r.DataService.AddPlayer(args.FirstName, args.LastName, *args.TeamName)
+func (r QueryResolver) AddPlayer(ctx context.Context, args struct{ Player models.PlayerInputArgs }) (*models.PlayerResolver, error) {
+	p, err := r.DataService.AddPlayer(args.Player)
 
 	if err != nil {
 		r.LoggerService.Error("Could not add player to database")

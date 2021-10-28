@@ -119,8 +119,12 @@ func TestRootResolver_Players(t *testing.T) {
 func TestRootResolver_Player(t *testing.T) {
 	rootSchema, mockDataService, _ := getTestFixtures()
 
-	mockDataService.On("GetPlayerByID", mock.Anything).Return(mockPlayer, nil)
-	mockDataService.On("AddPlayer", mock.Anything, mock.Anything, mock.Anything).Return(mockPlayer, nil)
+	mockResolvedPlayer := &[]*models.PlayerResolver{
+		&models.PlayerResolver{P: &mockPlayer},
+	}
+
+	mockDataService.On("GetPlayerByID", mock.Anything).Return(mockResolvedPlayer, nil)
+	mockDataService.On("AddPlayer", mock.Anything).Return(&models.PlayerResolver{P: &mockPlayer}, nil)
 
 	ctx := context.WithValue(context.Background(), playerData, mockDataService)
 
@@ -157,8 +161,11 @@ func TestRootResolver_Player(t *testing.T) {
 			Context: ctx,
 			Schema:  rootSchema,
 			Query: `
-			mutation _ {
-				addPlayer(firstName: "Ollie", lastName: "Inu", teamName: "Dogs") {
+			mutation addPlayer {
+				addPlayer(
+					player: {
+						firstName: "Ollie", lastName: "Inu", teamID: "1"
+					}) {
 				  id
 				}
 			  }
