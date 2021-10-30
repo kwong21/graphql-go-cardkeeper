@@ -6,13 +6,6 @@ import (
 	"gorm.io/gorm"
 )
 
-// PlayerInputArgs contains the fields for adding a Player to the API
-type PlayerInputArgs struct {
-	TeamID    string
-	FirstName string
-	LastName  string
-}
-
 // Player encapsulates information for a Player
 type Player struct {
 	gorm.Model
@@ -20,12 +13,19 @@ type Player struct {
 	LastName  string `gorm:"not null;uniqueIndex:idx_player;default:null"`
 	TeamID    uint
 	TeamName  string
-	Team      Team `gorm:"embedded"`
+	Team      Team
 }
 
 // PlayerResolver contains the resolved GraphQL representation of the Player
 type PlayerResolver struct {
 	P *Player
+}
+
+// PlayerInputArgs contains the fields for adding a Player to the API
+type PlayerInputArgs struct {
+	TeamID    string
+	FirstName string
+	LastName  string
 }
 
 // ID resolves the unique identifier for the PLayer

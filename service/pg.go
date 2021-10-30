@@ -98,7 +98,7 @@ func (pg PostgresClient) GetAllPlayers() ([]models.Player, error) {
 func (pg PostgresClient) GetPlayersOnTeam(team string) ([]models.Player, error) {
 	var players []models.Player
 
-	r := pg.client.Where("team_name = ?", team).Find(&players)
+	r := pg.client.Joins("LEFT JOIN teams ON teams.id = players.team_id").Where("teams.name = ?", team).Find(&players)
 
 	return players, r.Error
 }

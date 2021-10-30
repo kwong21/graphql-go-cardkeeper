@@ -21,6 +21,13 @@ type PlayerQueryArgs struct {
 	TeamName  *string
 }
 
+// PlayerInputArgs contains the fields for adding a Player to the API
+type PlayerInputArgs struct {
+	TeamID    string
+	FirstName string
+	LastName  string
+}
+
 type TeamQueryArgs struct {
 	Name   string
 	League string
