@@ -5,12 +5,33 @@ import (
 	"fmt"
 
 	"github.com/graph-gophers/graphql-go/errors"
+	"github.com/kwong21/graphql-go-cardkeeper/models"
 	"github.com/kwong21/graphql-go-cardkeeper/service"
 )
 
 type QueryResolver struct {
 	DataService   service.DataService
 	LoggerService service.Logger
+}
+
+type PlayerQueryArgs struct {
+	ID        string
+	FirstName string
+	LastName  string
+	TeamName  *string
+}
+
+// PlayerInputArgs contains the fields for adding a Player to the API
+type PlayerInputArgs struct {
+	TeamID    string
+	FirstName string
+	LastName  string
+}
+
+type TeamQueryArgs struct {
+	Name   string
+	League string
+	Abbr   string
 }
 
 func NewRoot(s service.DataService, l service.Logger) (*QueryResolver, error) {
@@ -20,81 +41,110 @@ func NewRoot(s service.DataService, l service.Logger) (*QueryResolver, error) {
 	}, nil
 }
 
-// Team resolves the query to GET teams belonging in `league`
-func (r QueryResolver) Team(ctx context.Context, args TeamQueryArgs) (*[]*TeamResolver, error) {
-	var resolved = make([]*TeamResolver, 0)
+// Teams resolves the query to GET all teams
+func (r QueryResolver) Teams(ctx context.Context) (*[]*models.TeamResolver, error) {
+	r.LoggerService.Info("Retrieving all teams")
 
-	r.LoggerService.Info("Retrieving teams in league " + args.League)
-	teams := r.DataService.GetTeamsByLeague(args.League)
+	teams, err := r.DataService.GetAllTeams()
 
-	for _, t := range teams {
-		resolved = append(resolved, &TeamResolver{t: &t})
+	if err != nil {
+		r.LoggerService.Error("Could not retrieve all teams in the database")
+		qe := r.createErrorResponse(err)
+
+		return nil, qe
 	}
 
-	r.LoggerService.Info(fmt.Sprintf("Found %d teams", len(resolved)))
+	return teams, nil
+}
 
-	return &resolved, nil
+// Team resolves the query to GET teams belonging in `league`
+func (r QueryResolver) Team(ctx context.Context, args TeamQueryArgs) (*[]*models.TeamResolver, error) {
+	r.LoggerService.Info("Retrieving teams in league " + args.League)
+	teams, err := r.DataService.GetTeamsByLeague(args.League)
+
+	if err != nil {
+		r.LoggerService.Error("Could not get team from league" + args.League)
+
+		qe := r.createErrorResponse(err)
+
+		return nil, qe
+	}
+
+	return teams, nil
 }
 
 // AddTeam resolves the query to POST a team to the database
-func (r QueryResolver) AddTeam(ctx context.Context, args TeamQueryArgs) (*TeamResolver, error) {
+func (r QueryResolver) AddTeam(ctx context.Context, args TeamQueryArgs) (*models.TeamResolver, error) {
 	t, err := r.DataService.AddTeam(args.Name, args.Abbr, args.League)
 
 	if err != nil {
 		r.LoggerService.Error("Could not add team to database")
-		r.LoggerService.Error(err.Error())
 
-		qe := &errors.QueryError{
-			Message: fmt.Sprintf("error: Unable to add new team: %s", err),
-		}
+		qe := r.createErrorResponse(err)
+
 		return nil, qe
 	}
 
-	resolved := &TeamResolver{t: &t}
-
-	return resolved, nil
+	return t, nil
 }
 
-// Player resolves the query to GET players with `first_name` and `last_name`
-func (r QueryResolver) Player(ctx context.Context, args PlayerQueryArgs) (*[]*PlayerResolver, error) {
-	var resolved = make([]*PlayerResolver, 0)
+// Players resolves the query to GET all players or all players on a team if a param is provided
+func (r QueryResolver) Players(ctx context.Context, args PlayerQueryArgs) (*[]*models.PlayerResolver, error) {
+	var players *[]*models.PlayerResolver
+	var err error
 
-	r.LoggerService.Info(fmt.Sprintf("Retrieving player with first_name %s and last_name %s", args.FirstName, args.LastName))
-	players, err := r.DataService.GetPlayerByName(args.FirstName, args.LastName)
-
-	for _, p := range players {
-		resolved = append(resolved, &PlayerResolver{p: &p})
+	if args.TeamName == nil {
+		r.LoggerService.Info("GET all players")
+		players, err = r.DataService.GetAllPlayers()
+	} else {
+		r.LoggerService.Info(fmt.Sprintf("GET players on team %s", *args.TeamName))
+		players, err = r.DataService.GetPlayersOnTeam(*args.TeamName)
 	}
 
 	if err != nil {
-		r.LoggerService.Error(fmt.Sprintf("Could not retrieve player with first_name %s and last_name %s", args.FirstName, args.LastName))
-		r.LoggerService.Error(err.Error())
+		r.LoggerService.Error("Could not get Players from database")
+		qe := r.createErrorResponse(err)
+		return nil, qe
+	}
 
-		qe := &errors.QueryError{
-			Message: err.Error(),
-		}
+	return players, nil
+}
+
+// Player resolves the query to GET a player with queried ID
+func (r QueryResolver) Player(ctx context.Context, args PlayerQueryArgs) (*[]*models.PlayerResolver, error) {
+	r.LoggerService.Info(fmt.Sprintf("Retrieving player with ID %s", args.ID))
+	player, err := r.DataService.GetPlayerByID(args.ID)
+
+	if err != nil {
+		r.LoggerService.Error(fmt.Sprintf("Could not retrieve player with ID %s", args.ID))
+		qe := r.createErrorResponse(err)
 
 		return nil, qe
 	}
 
-	return &resolved, nil
+	return player, nil
 }
 
 // AddPlayer reoslves the query to POST a player to the database
-func (r QueryResolver) AddPlayer(ctx context.Context, args PlayerQueryArgs) (*PlayerResolver, error) {
-	p, err := r.DataService.AddPlayer(args.FirstName, args.LastName, args.TeamName)
+func (r QueryResolver) AddPlayer(ctx context.Context, args struct{ Player models.PlayerInputArgs }) (*models.PlayerResolver, error) {
+	p, err := r.DataService.AddPlayer(args.Player)
 
 	if err != nil {
 		r.LoggerService.Error("Could not add player to database")
-		r.LoggerService.Error(err.Error())
+		qe := r.createErrorResponse(err)
 
-		qe := &errors.QueryError{
-			Message: fmt.Sprintf("error: Unable to add new player: %s", err),
-		}
 		return nil, qe
 	}
 
-	resolved := &PlayerResolver{p: &p}
+	return p, nil
+}
 
-	return resolved, nil
+func (r QueryResolver) createErrorResponse(err error) error {
+	r.LoggerService.Error(err.Error())
+
+	qe := &errors.QueryError{
+		Message: err.Error(),
+	}
+
+	return qe
 }

@@ -8,10 +8,13 @@ import (
 )
 
 type DataService interface {
-	GetPlayerByName(firstName string, lastName string) ([]models.Player, error)
-	GetTeamsByLeague(league string) []models.Team
-	AddTeam(name string, abbr string, league string) (models.Team, error)
-	AddPlayer(firstName string, lastName string, teamName string) (models.Player, error)
+	GetAllPlayers() (*[]*models.PlayerResolver, error)
+	GetPlayerByID(id string) (*[]*models.PlayerResolver, error)
+	GetPlayersOnTeam(team string) (*[]*models.PlayerResolver, error)
+	GetAllTeams() (*[]*models.TeamResolver, error)
+	GetTeamsByLeague(league string) (*[]*models.TeamResolver, error)
+	AddTeam(name string, abbr string, league string) (*models.TeamResolver, error)
+	AddPlayer(player models.PlayerInputArgs) (*models.PlayerResolver, error)
 }
 
 type DatabaseService struct {
@@ -31,15 +34,81 @@ func NewDBService(config models.Config, l Logger) DataService {
 	}
 }
 
-func (d DatabaseService) GetTeamsByLeague(league string) []models.Team {
-	return d.client.GetTeamsByLeague(league)
+func (d DatabaseService) GetAllTeams() (*[]*models.TeamResolver, error) {
+	var resolved = make([]*models.TeamResolver, 0)
+
+	teams, err := d.client.GetAllTeams()
+
+	if err != nil {
+		return nil, err
+	}
+
+	for idx := range teams {
+		resolved = append(resolved, &models.TeamResolver{T: &teams[idx]})
+
+	}
+
+	return &resolved, nil
 }
 
-func (d DatabaseService) GetPlayerByName(firstName string, lastName string) ([]models.Player, error) {
-	return d.client.GetPlayerByName(firstName, lastName)
+func (d DatabaseService) GetTeamsByLeague(league string) (*[]*models.TeamResolver, error) {
+	var resolved = make([]*models.TeamResolver, 0)
+
+	teams := d.client.GetTeamsByLeague(league)
+
+	for idx := range teams {
+		resolved = append(resolved, &models.TeamResolver{T: &teams[idx]})
+	}
+
+	return &resolved, nil
 }
 
-func (d DatabaseService) AddTeam(name string, abbr string, league string) (models.Team, error) {
+func (d DatabaseService) GetAllPlayers() (*[]*models.PlayerResolver, error) {
+	var resolved = make([]*models.PlayerResolver, 0)
+	players, err := d.client.GetAllPlayers()
+
+	if err != nil {
+		return nil, err
+	}
+
+	for idx := range players {
+		resolved = append(resolved, &models.PlayerResolver{P: &players[idx]})
+	}
+
+	return &resolved, nil
+}
+
+func (d DatabaseService) GetPlayerByID(id string) (*[]*models.PlayerResolver, error) {
+	var resolved = make([]*models.PlayerResolver, 0)
+	player, err := d.client.GetPlayerByID(id)
+
+	if err != nil {
+		return nil, err
+	}
+
+	if player != (models.Player{}) {
+		resolved = append(resolved, &models.PlayerResolver{P: &player})
+	}
+
+	return &resolved, nil
+}
+
+func (d DatabaseService) GetPlayersOnTeam(team string) (*[]*models.PlayerResolver, error) {
+	var resolved = make([]*models.PlayerResolver, 0)
+	players, err := d.client.GetPlayersOnTeam(team)
+
+	if err != nil {
+		return nil, err
+	}
+
+	for idx := range players {
+		resolved = append(resolved, &models.PlayerResolver{P: &players[idx]})
+	}
+
+	return &resolved, nil
+}
+
+func (d DatabaseService) AddTeam(name string, abbr string, league string) (*models.TeamResolver, error) {
 	newTeam := models.Team{
 		Name:   name,
 		Abbr:   abbr,
@@ -47,30 +116,31 @@ func (d DatabaseService) AddTeam(name string, abbr string, league string) (model
 	}
 
 	team, err := d.client.AddTeam(newTeam)
+	resolved := &models.TeamResolver{T: &team}
 
-	return team, err
+	return resolved, err
 }
 
-func (d DatabaseService) AddPlayer(firstName string, lastName string, teamName string) (models.Player, error) {
-	teams, err := d.client.GetTeamByName(teamName)
+func (d DatabaseService) AddPlayer(playerInput models.PlayerInputArgs) (*models.PlayerResolver, error) {
+	team, err := d.client.GetTeamByID(playerInput.TeamID)
 
 	if err != nil {
-		return models.Player{}, err
+		return nil, err
 	}
 
-	if len(teams) < 1 {
-		return models.Player{}, errors.New("Team does not exist. " + teamName)
+	if (team == models.Team{}) {
+		return nil, errors.New("Team with ID " + playerInput.TeamID + " does not exist")
 	}
 
-	team := teams[0]
 	newPlayer := models.Player{
-		FirstName: firstName,
-		LastName:  lastName,
+		FirstName: playerInput.FirstName,
+		LastName:  playerInput.LastName,
 		TeamID:    team.ID,
 		Team:      team,
 	}
 
 	player, err := d.client.AddPlayer(newPlayer)
+	resolved := &models.PlayerResolver{P: &player}
 
-	return player, err
+	return resolved, err
 }

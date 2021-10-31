@@ -14,8 +14,13 @@ import (
 )
 
 type DBClient interface {
+	GetAllTeams() ([]models.Team, error)
 	GetTeamsByLeague(string) []models.Team
 	GetTeamByName(string) ([]models.Team, error)
+	GetTeamByID(string) (models.Team, error)
+	GetAllPlayers() ([]models.Player, error)
+	GetPlayersOnTeam(string) ([]models.Player, error)
+	GetPlayerByID(string) (models.Player, error)
 	GetPlayerByName(string, string) ([]models.Player, error)
 	AddTeam(models.Team) (models.Team, error)
 	AddPlayer(models.Player) (models.Player, error)
@@ -52,6 +57,14 @@ func NewPGClient(config models.Config) (*PostgresClient, error) {
 	return c, nil
 }
 
+func (pg PostgresClient) GetAllTeams() ([]models.Team, error) {
+	var teams []models.Team
+
+	r := pg.client.Find(&teams)
+
+	return teams, r.Error
+}
+
 func (pg PostgresClient) GetTeamsByLeague(league string) []models.Team {
 	var teams []models.Team
 
@@ -60,10 +73,42 @@ func (pg PostgresClient) GetTeamsByLeague(league string) []models.Team {
 	return teams
 }
 
+func (pg PostgresClient) GetTeamByID(id string) (models.Team, error) {
+	var team models.Team
+
+	r := pg.client.Where("id = ?", id).Find(&team)
+
+	return team, r.Error
+}
+
 func (pg PostgresClient) AddTeam(team models.Team) (models.Team, error) {
 	result := pg.client.Create(&team)
 
 	return team, result.Error
+}
+
+func (pg PostgresClient) GetAllPlayers() ([]models.Player, error) {
+	var players []models.Player
+
+	r := pg.client.Find(&players)
+
+	return players, r.Error
+}
+
+func (pg PostgresClient) GetPlayersOnTeam(team string) ([]models.Player, error) {
+	var players []models.Player
+
+	r := pg.client.Joins("LEFT JOIN teams ON teams.id = players.team_id").Where("teams.name = ?", team).Find(&players)
+
+	return players, r.Error
+}
+
+func (pg PostgresClient) GetPlayerByID(id string) (models.Player, error) {
+	var player models.Player
+
+	r := pg.client.Where("id = ?", id).Find(&player)
+
+	return player, r.Error
 }
 
 func (pg PostgresClient) GetPlayerByName(firstName string, lastName string) ([]models.Player, error) {
@@ -75,9 +120,9 @@ func (pg PostgresClient) GetPlayerByName(firstName string, lastName string) ([]m
 }
 
 func (pg PostgresClient) AddPlayer(player models.Player) (models.Player, error) {
-	result := pg.client.Omit(clause.Associations).Create(&player)
+	r := pg.client.Omit(clause.Associations).Create(&player)
 
-	return player, result.Error
+	return player, r.Error
 }
 
 func (pg PostgresClient) GetTeamByName(teamName string) ([]models.Team, error) {
